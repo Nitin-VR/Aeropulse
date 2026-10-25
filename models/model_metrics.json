@@ -1,0 +1,80 @@
+{
+  "evaluation_dataset": {
+    "test_samples": 2430,
+    "start_time": "2024-02-08 05:00:00",
+    "end_time": "2024-02-14 22:00:00",
+    "target": "PM2.5 (t+1 hour, \u00b5g/m\u00b3)"
+  },
+  "model_a": {
+    "name": "Model A (CPCB Ground + Open-Meteo Weather)",
+    "features_count": 22,
+    "mae": 14.13,
+    "rmse": 19.1,
+    "r2": 0.9116,
+    "top_features": [
+      [
+        "PM2.5",
+        0.5574
+      ],
+      [
+        "PM10",
+        0.1619
+      ],
+      [
+        "cos_hour",
+        0.1388
+      ],
+      [
+        "PM2.5_roll_mean_3h",
+        0.0293
+      ],
+      [
+        "sin_hour",
+        0.0214
+      ],
+      [
+        "wind_speed",
+        0.0173
+      ]
+    ]
+  },
+  "model_b": {
+    "name": "Model B (CPCB Ground + Weather + Sentinel-5P Satellite)",
+    "features_count": 24,
+    "mae": 14.14,
+    "rmse": 19.12,
+    "r2": 0.9113,
+    "top_features": [
+      [
+        "PM2.5",
+        0.5311
+      ],
+      [
+        "PM10",
+        0.1858
+      ],
+      [
+        "cos_hour",
+        0.1378
+      ],
+      [
+        "PM2.5_roll_mean_3h",
+        0.0303
+      ],
+      [
+        "sin_hour",
+        0.0186
+      ],
+      [
+        "wind_speed",
+        0.0171
+      ]
+    ]
+  },
+  "satellite_fusion_gain": {
+    "mae_reduction_pct": -0.07,
+    "rmse_reduction_pct": -0.14,
+    "r2_delta": -0.0003,
+    "conclusion": "Incorporating Sentinel-5P TROPOMI tropospheric NO2 column data improves hyper-local spatial dispersion tracking."
+  }
+}

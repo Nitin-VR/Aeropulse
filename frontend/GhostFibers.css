@@ -1,0 +1,19 @@
+/* GhostFibers Component CSS (from React Bits) */
+.ghost-fibers-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Atmospheric background wrapper */
+.ghost-fibers-ambient-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.65;
+  mix-blend-mode: screen;
+}

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AeroPulse ~ Pulse of your city.">
+  <title>AeroPulse ~ Pulse of your city</title>
+  
+  <!-- Title Icon (Favicon) -->
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  
+  <!-- Modern Typography (Inter & Outfit) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="GhostFibers.css">
+</head>
+<body class="dark-theme">
+
+  <!-- Atmospheric GhostFibers Ambient WebGL2 Background -->
+  <div id="ghostFibersContainer" class="ghost-fibers-ambient-bg" aria-hidden="true"></div>
+
+  <!-- Initializing AeroPulse Splash Screen Overlay -->
+  <div id="initSplash" class="init-splash-screen">
+    <div class="splash-card">
+      <div class="splash-logo-container">
+        <img src="logo.png" alt="AeroPulse Logo" class="splash-logo-img">
+        <div class="splash-radar-wave"></div>
+      </div>
+      <h2 class="splash-title">Initializing <span class="splash-brand-text">AeroPulse</span></h2>
+      <div class="splash-pulse-bar">
+        <div class="splash-pulse-fill"></div>
+      </div>
+      <div class="splash-status-text">Pulse of your city &bull; Calibrating atmospheric models</div>
+    </div>
+  </div>
+
+  <!-- Top Floating Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="brand-logo-glow">
+          <img src="logo.png" alt="AeroPulse Logo" class="brand-logo-img">
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">AeroPulse<span class="ai-badge">AI</span></div>
+          <div class="brand-subtitle">Pulse of your city</div>
+        </div>
+      </div>
+
+      <!-- Center Data Fusion Floating Navigation Pills -->
+      <nav class="fusion-pipeline-nav" aria-label="Data Pipeline Sources">
+        <div class="pipeline-floating-pill" title="CPCB Ground Monitoring Stations Telemetry">
+          <span class="node-dot cpcb"></span>
+          <span class="pill-label">CPCB Ground</span>
+        </div>
+        <div class="pipeline-floating-pill" title="Open-Meteo High-Resolution Atmospheric Weather Dispersion">
+          <span class="node-dot weather"></span>
+          <span class="pill-label">Open-Meteo</span>
+        </div>
+        <div class="pipeline-floating-pill" title="Sentinel-5P Satellite Tropospheric NO2 Column Density">
+          <span class="node-dot satellite"></span>
+          <span class="pill-label">Sentinel-5P</span>
+        </div>
+      </nav>
+
+      <!-- Right Header Actions -->
+      <div class="header-actions">
+        <button class="mode-toggle-btn" id="btnModeToggle" title="Click to toggle between Real-Time Live Open-Meteo Telemetry and Winter Smog Benchmark Episode">
+          <span class="pulse-dot"></span>
+          <span class="tag-label" id="modeTagLabel">MODE: BENCHMARK</span>
+        </button>
+        <button class="btn btn-secondary" id="btnModelMetrics" title="Inspect genuine Model A vs Model B evaluation metrics">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          <span>Model Benchmark</span>
+        </button>
+        <button class="btn btn-primary" id="btnRefresh" title="Refresh Live Intelligence">
+          <svg id="refreshIcon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Sync Live</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Container -->
+  <main class="dashboard-main">
+    
+    <!-- Top KPI Grid -->
+    <section class="kpi-grid" aria-label="Key Performance Indicators">
+      
+      <!-- PM2.5 Card -->
+      <div class="kpi-card" id="kpiPm25Card">
+        <div class="kpi-header">
+          <span class="kpi-title">PM2.5 City Average</span>
+          <span class="kpi-risk-badge" id="kpiPm25Risk">Loading...</span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-metric-val"><span id="kpiPm25">--</span> <span class="unit">µg/m³</span></div>
+          <div class="kpi-subtext" id="kpiPm25Desc">Diurnal boundary layer inversion tracking</div>
+        </div>
+        <div class="kpi-spark-bar">
+          <div class="spark-fill" id="kpiPm25Fill" style="width: 65%;"></div>
+        </div>
+      </div>
+
+      <!-- PM10 Card -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">PM10 Coarse Dust</span>
+          <span class="kpi-icon-wrap">🌫️</span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-metric-val"><span id="kpiPm10">--</span> <span class="unit">µg/m³</span></div>
+          <div class="kpi-subtext">Resuspended road & regional dust concentration</div>
+        </div>
+      </div>
+
+      <!-- NO2 Card -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">NO2 Precursor</span>
+          <span class="kpi-icon-wrap">🚗</span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-metric-val"><span id="kpiNo2">--</span> <span class="unit">µg/m³</span></div>
+          <div class="kpi-subtext">Combustion & traffic emission indicator</div>
+        </div>
+      </div>
+
+      <!-- Active Hotspots -->
+      <div class="kpi-card card-alert-hotspot">
+        <div class="kpi-header">
+          <span class="kpi-title">Hotspots Detected</span>
+          <span class="alert-beacon" id="hotspotBeacon"></span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-metric-val highlight-warn"><span id="kpiHotspots">0</span> <span class="unit">Active</span></div>
+          <div class="kpi-subtext">Isolation Forest & Z-Score anomaly clusters</div>
+        </div>
+      </div>
+
+      <!-- Active Alerts -->
+      <div class="kpi-card card-alert-total">
+        <div class="kpi-header">
+          <span class="kpi-title">Dashboard Alerts</span>
+          <span class="alert-beacon red" id="alertBeacon"></span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-metric-val highlight-crit"><span id="kpiAlerts">0</span> <span class="unit">Surges</span></div>
+          <div class="kpi-subtext">Automated rapid PM2.5 rise notifications</div>
+        </div>
+      </div>
+
+      <!-- Live Meteorology -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-title">Delhi Meteorology</span>
+          <span class="kpi-icon-wrap">💨</span>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-weather-flex">
+            <div class="weather-item"><span class="w-label">Temp:</span> <span class="w-val" id="kpiTemp">--°C</span></div>
+            <div class="weather-item"><span class="w-label">Wind:</span> <span class="w-val" id="kpiWind">-- m/s</span></div>
+          </div>
+          <div class="kpi-subtext" id="kpiWeatherSub">Open-Meteo dispersion tracking</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Main Content Workspace (Split Layout) -->
+    <div class="workspace-grid">
+      
+      <!-- Top Row - Left: Interactive Map & Layer Controls -->
+      <div class="map-container-card">
+        
+        <!-- Map Header / Controls Bar -->
+        <div class="map-controls-header">
+          <div class="map-title-wrap">
+            <h1 class="map-title">Interactive Delhi Pollution Map</h1>
+            <span class="map-subtitle">CPCB Stations &bull; IDW Spatial Grid &bull; Sentinel-5P Fusion</span>
+          </div>
+
+          <div class="map-actions-group">
+            <!-- Station Quick Search -->
+            <div class="search-select-wrap">
+              <select id="stationSelect" aria-label="Select Monitoring Station">
+                <option value="">-- All Delhi NCR (City Average) --</option>
+              </select>
+            </div>
+
+            <!-- Layer Toggles -->
+            <div class="layer-toggle-btn-group">
+              <button class="layer-btn active" id="toggleGridLayer" title="Toggle IDW Interpolation Grid">
+                <span class="btn-check">✓</span> <span>IDW Grid</span>
+              </button>
+              <button class="layer-btn active" id="toggleStationsLayer" title="Toggle CPCB Station Markers">
+                <span class="btn-check">✓</span> <span>Stations</span>
+              </button>
+              <button class="layer-btn active" id="toggleHotspotsLayer" title="Toggle Anomaly Hotspot Rings">
+                <span class="btn-check">✓</span> <span>Hotspots</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaflet Map Canvas -->
+        <div id="delhiMap" class="map-viewport"></div>
+
+        <!-- Map Footer Legend -->
+        <div class="map-legend-bar">
+          <span class="legend-title">NAQI Air Quality Scale:</span>
+          <div class="legend-items">
+            <span class="legend-badge" style="--c: #00e400">Good (0-30)</span>
+            <span class="legend-badge" style="--c: #92d050">Satisfactory (31-60)</span>
+            <span class="legend-badge" style="--c: #ffff00">Moderate (61-90)</span>
+            <span class="legend-badge" style="--c: #ff7e00">Poor (91-120)</span>
+            <span class="legend-badge" style="--c: #ff0000">Very Poor (121-250)</span>
+            <span class="legend-badge" style="--c: #7e0023">Severe (250+)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Top Row - Right: Forecasting Panel (Extended alongside Map) -->
+      <div class="panel-card forecast-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-pretitle">XGBoost PM2.5 Forecast Engine</div>
+            <h2 class="panel-title" id="forecastStationTitle">Delhi NCR (City Average)</h2>
+          </div>
+          <div class="trend-badge-pill" id="forecastTrendPill">Stable</div>
+        </div>
+
+        <!-- Forecast Chart Canvas -->
+        <div class="chart-wrapper">
+          <canvas id="forecastChart" height="210"></canvas>
+        </div>
+
+        <!-- Horizon Metrics Pill Grid -->
+        <div class="horizon-pills-row">
+          <div class="horizon-pill">
+            <span class="hz-label">Current</span>
+            <span class="hz-val" id="hzValCurrent">--</span>
+          </div>
+          <div class="horizon-pill highlight">
+            <span class="hz-label">+1 Hour (t+1)</span>
+            <span class="hz-val" id="hzVal1h">--</span>
+          </div>
+          <div class="horizon-pill">
+            <span class="hz-label">+2 Hours</span>
+            <span class="hz-val" id="hzVal2h">--</span>
+          </div>
+          <div class="horizon-pill">
+            <span class="hz-label">+3 Hours</span>
+            <span class="hz-val" id="hzVal3h">--</span>
+          </div>
+        </div>
+
+        <!-- Explainable AI (XAI) Attribution Box -->
+        <div class="xai-explanation-box">
+          <div class="xai-header">
+            <span class="xai-icon">⚡</span>
+            <span class="xai-title">AI Forecast Attribution & Dynamics</span>
+          </div>
+          <p class="xai-summary" id="xaiSummary">Evaluating meteorological dispersion vectors and satellite column signals...</p>
+          <ul class="xai-signals-list" id="xaiSignalsList">
+            <li>Loading evidence-backed contributing factors...</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom Row - Left: Space Below Map (Spatial Anomaly Detection & Automated Event Triggers) -->
+      <div class="bottom-intelligence-grid">
+        <!-- Hotspot Anomaly Panel -->
+        <div class="panel-card hotspot-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-pretitle">Spatial Anomaly Detection</div>
+              <h2 class="panel-title">Detected Hotspots (<span id="hotspotCountBadge">0</span>)</h2>
+            </div>
+            <span class="hotspot-engine-tag">Isolation Forest + Z-Score</span>
+          </div>
+          
+          <div class="hotspots-list" id="hotspotsList">
+            <div class="empty-state">No anomalous hotspots detected in the current window.</div>
+          </div>
+        </div>
+
+        <!-- Pollution Alerts Panel -->
+        <div class="panel-card alerts-panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-pretitle">Automated Event Triggers</div>
+              <h2 class="panel-title">Pollution Alerts (<span id="alertCountBadge">0</span>)</h2>
+            </div>
+            <span class="status-live-dot"></span>
+          </div>
+
+          <div class="alerts-feed" id="alertsFeed">
+            <div class="empty-state">No active critical surge alerts.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row - Right: Space Below Forecast (About Project & Developers) -->
+      <div class="panel-card about-project-panel">
+        <div class="panel-header">
+          <div>
+            <div class="panel-pretitle">Project Intelligence & Team</div>
+            <h2 class="panel-title">About This Project</h2>
+          </div>
+          <span class="project-tag-pill">v1.0 &bull; Live & AI</span>
+        </div>
+
+        <div class="about-project-content">
+          <p class="about-project-desc">
+            <strong>AeroPulse</strong> is a hyper-local air intelligence platform combining real-time CPCB ground stations, Open-Meteo weather dispersion, and Sentinel-5P satellite NO₂ data with XGBoost forecasting models and Isolation Forest anomaly detection across Delhi NCR.
+          </p>
+
+          <div class="developers-section">
+            <div class="developers-header-title">Core Development Team</div>
+            <div class="developers-list">
+              <div class="developer-card">
+                <div class="dev-avatar dev-avatar-ml">JS</div>
+                <div class="dev-info">
+                  <div class="dev-name">Jaidev S</div>
+                  <div class="dev-role">AI/ML Developer</div>
+                </div>
+                <span class="dev-badge ai">AI / ML</span>
+              </div>
+
+              <div class="developer-card">
+                <div class="dev-avatar dev-avatar-be">NV</div>
+                <div class="dev-info">
+                  <div class="dev-name">Nitin V R</div>
+                  <div class="dev-role">Backend Developer + AI</div>
+                </div>
+                <span class="dev-badge be">Backend + AI</span>
+              </div>
+
+              <div class="developer-card">
+                <div class="dev-avatar dev-avatar-fe">TM</div>
+                <div class="dev-info">
+                  <div class="dev-name">Tharun M</div>
+                  <div class="dev-role">Frontend Developer + AI</div>
+                </div>
+                <span class="dev-badge fe">Frontend + AI</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Model Benchmark & Evaluation Modal -->
+  <div class="modal-overlay" id="metricsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 class="modal-title">Model Evaluation & Benchmark Comparison</h3>
+          <p class="modal-subtitle">Strict Chronological Test Split (No Data Leakage) &bull; Non-Fabricated Metrics</p>
+        </div>
+        <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+      </div>
+      
+      <div class="modal-body" id="modalMetricsBody">
+        <div class="loading-spinner-wrap">Loading benchmark metrics...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  
+  <!-- GhostFibers Component JS -->
+  <script src="GhostFibers.js"></script>
+  
+  <!-- App JS -->
+  <script src="app.js"></script>
+</body>
+</html>
